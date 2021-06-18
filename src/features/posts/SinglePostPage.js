@@ -1,0 +1,48 @@
+import React from 'react';
+import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
+import { parseISO, formatDistanceToNow } from 'date-fns';
+
+import { selectUserById } from '../users/usersSlice';
+import { selectPostById } from '../posts/postsSlice';
+import { ReactionButtons } from './ReactionButtons';
+
+// eslint-disable-next-line react/prop-types
+export const SinglePostPage = ({ match }) => {
+  // eslint-disable-next-line react/prop-types
+  const { postId } = match.params;
+
+  const post = useSelector((state) => selectPostById(state, postId));
+
+  const author = useSelector((state) => selectUserById(state, post ? post.user : null));
+
+  if (!post) {
+    return (
+      <section>
+        <h2>Post not found!</h2>
+      </section>
+    );
+  }
+
+  const date = parseISO(post.date);
+  const timeAgo = formatDistanceToNow(date);
+
+  return (
+    <section>
+      <article className="post">
+        <h2>{post.title}</h2>
+        <span>
+          <i>{author.name}</i>
+        </span>
+        <span title={post.date}>
+          &nbsp; <i>{timeAgo} ago</i>
+        </span>
+        <p>{post.content}</p>
+        <ReactionButtons post={post} />
+        <Link to={`/editPost/${post.id}`} className="button">
+          Edit Post
+        </Link>
+      </article>
+    </section>
+  );
+};

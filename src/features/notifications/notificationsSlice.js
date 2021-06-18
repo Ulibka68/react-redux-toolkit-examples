@@ -1,0 +1,47 @@
+import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/toolkit';
+
+import { client } from '../../api/client';
+
+export const fetchNotifications = createAsyncThunk(
+  'notifications/fetchNotifications',
+  async (_, { getState }) => {
+    const [latestNotification] = selectAllNotifications(getState());
+    const latestTimestamp = latestNotification ? latestNotification.date : '';
+    const response = await client.get(`/fakeApi/notifications?since=${latestTimestamp}`);
+    return response.notifications;
+  }
+);
+
+const notificationsAdapter = createEntityAdapter({
+  // Sort reverse-chronologically
+  sortComparer: (a, b) => b.date.localeCompare(a.date),
+});
+
+export const { selectAll: selectAllNotifications, selectById: selectNotificationById } =
+  notificationsAdapter.getSelectors((state) => state.notifications);
+
+const notificationsSlice = createSlice({
+  name: 'notifications',
+  initialState: notificationsAdapter.getInitialState(),
+  reducers: {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    allNotificationsRead(state, action) {
+      Object.values(state.entities).forEach((notification) => {
+        notification.read = true;
+      });
+    },
+  },
+  extraReducers: {
+    [fetchNotifications.fulfilled]: (state, action) => {
+      Object.values(state.entities).forEach((notification) => {
+        notification.isNew = !notification.read;
+      });
+
+      notificationsAdapter.upsertMany(state, action);
+    },
+  },
+});
+
+export const { notificationRead, allNotificationsRead } = notificationsSlice.actions;
+
+export default notificationsSlice.reducer;
