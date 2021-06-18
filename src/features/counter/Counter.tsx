@@ -11,6 +11,7 @@ import {
 } from './counterSlice';
 import styles from './Counter.module.css';
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function Counter() {
   const count = useAppSelector(selectCount);
   const dispatch = useAppDispatch();
@@ -56,10 +57,7 @@ export function Counter() {
         >
           Add Async
         </button>
-        <button
-          className={styles.button}
-          onClick={() => dispatch(incrementIfOdd(incrementValue))}
-        >
+        <button className={styles.button} onClick={() => dispatch(incrementIfOdd(incrementValue))}>
           Add If Odd
         </button>
       </div>
